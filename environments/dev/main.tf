@@ -9,7 +9,7 @@ module "backend" {
   network_id  = module.network.network_id
   container_name = "festival-backend"
   image       = "festival-backend:latest"
-  port        = 3000
+  port        = 3002
 }
 
 module "frontend" {
