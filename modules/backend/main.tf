@@ -2,6 +2,7 @@
 resource "docker_container" "this" {
   name  = var.container_name
   image = var.image
+  env   = var.env
 
   networks_advanced {
     name = var.network_id
@@ -11,4 +12,5 @@ resource "docker_container" "this" {
     internal = var.port
     external = var.port
   }
+  
 }

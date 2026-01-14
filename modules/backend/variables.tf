@@ -14,3 +14,9 @@ variable "port" {
 variable "network_id" {
   type = string
 }
+
+variable "env" {
+  description = "Lista de variables de entorno para el contenedor"
+  type        = list(string)
+  default     = []
+}

@@ -28,7 +28,19 @@ override.tf.json
 # !example_override.tf
 
 # Include plugin cache directory
-.terraform.lock.hcl
+# .terraform.lock.hcl 
+# This file is like package-lock.json in Node 
+# or requirements.txt in Python; 
+# It ensures that if a colleague of yours (or a CI/CD system) downloads the project, 
+# it installs exactly the same version 3.6.2 of kreuzwerker that you have now, avoiding surprises.
+# this is why it is included in version control.
 
 # macOS files
 .DS_Store
+
+# SQL files
+*.sql
+
+# Environment files
+.env
+.env.*
