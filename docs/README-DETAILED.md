@@ -3,6 +3,10 @@
 Terraform infrastructure for the Festival Match project:
 https://github.com/nelsoncabrera06/Festival-Match
 
+> For a quick overview, see the main [README.md](../README.md)
+>
+> See also: [Learning-roadmap.md](Learning-roadmap.md)
+
 ## Prerequisites
 - Docker installed
 - Terraform installed

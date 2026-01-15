@@ -7,13 +7,6 @@ Terraform infrastructure for the Festival Match project.
 - `environments/`: Environment-specific configurations (e.g., dev, prod).
 - `modules/`: Reusable Terraform modules (network, backend, frontend).
 
-
-
-# Festival Match – Infrastructure
-
-This repository contains the infrastructure definition for the Festival Match
-application using Terraform.
-
 ## Stack
 - Terraform
 - Docker provider
@@ -34,6 +27,13 @@ cd environments/dev
 terraform init
 terraform plan
 terraform apply
+```
 
-## How to destroy everything
+## How to destroy
+```bash
 terraform destroy
+```
+
+## Documentation
+- [README-DETAILED.md](docs/README-DETAILED.md) - Step-by-step guide
+- [Learning-roadmap.md](docs/Learning-roadmap.md) - Terraform learning path
