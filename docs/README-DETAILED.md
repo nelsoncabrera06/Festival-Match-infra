@@ -211,3 +211,6 @@ Now if you want to destroy all this infra you can run from this project
 ```
 FestivalMatch-infra/environments/dev/ % terraform destroy
 ```
+
+I should use volumes for the db
+that step is still missing
