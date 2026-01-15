@@ -34,3 +34,6 @@ cd environments/dev
 terraform init
 terraform plan
 terraform apply
+
+## How to destroy everything
+terraform destroy
