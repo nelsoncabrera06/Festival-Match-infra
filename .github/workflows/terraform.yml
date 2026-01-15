@@ -195,6 +195,41 @@ jobs:
           docker ps -a >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
 
+      - name: Wait for containers to start
+        run: sleep 10
+
+      - name: Smoke Test - Check services
+        run: |
+          echo "## Smoke Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          echo "### Backend Health Check"
+          curl -s -o /dev/null -w "Backend HTTP Status: %{http_code}\n" http://localhost:3002 || echo "Backend not responding (may need health endpoint)"
+
+          echo "### Frontend Health Check"
+          curl -s -o /dev/null -w "Frontend HTTP Status: %{http_code}\n" http://localhost:5173 || echo "Frontend not responding (may need health endpoint)"
+
+          echo "### Database Health Check"
+          docker exec festival-db pg_isready -U postgres && echo "PostgreSQL is ready!" || echo "PostgreSQL not ready"
+
+      - name: Show container logs
+        run: |
+          echo "=== Backend Logs ==="
+          docker logs festival-backend 2>&1 | tail -50 || true
+          echo ""
+          echo "=== Frontend Logs ==="
+          docker logs festival-frontend 2>&1 | tail -50 || true
+          echo ""
+          echo "=== Database Logs ==="
+          docker logs festival-db 2>&1 | tail -20 || true
+
+      - name: Keep alive for inspection (2 minutes)
+        run: |
+          echo "Keeping containers alive for 2 minutes..."
+          echo "You can see the running containers and logs above."
+          sleep 120
+          echo "Timeout reached, job will end now."
+
   # ===========================================
   # Job 4: Destroy - Manual trigger only
   # ===========================================
