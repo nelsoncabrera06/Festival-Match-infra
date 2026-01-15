@@ -20,11 +20,12 @@ https://github.com/nelsoncabrera06/Festival-Match
 - prod: scalable setup (simulated)
 
 ## Commands
+```
 terraform init
 terraform plan
 terraform apply
 terraform destroy
-
+```
 
 ## Architecture of this proyect:
 ```
