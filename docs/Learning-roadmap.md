@@ -6,6 +6,7 @@
 - Terraform + LocalStack (level pro) 
 - Terraform + AWS Free Tier 
 
+
 ## Goals:
 - Terraform + Docker in local (0 € total)
   - Providers, resources, state, outputs
