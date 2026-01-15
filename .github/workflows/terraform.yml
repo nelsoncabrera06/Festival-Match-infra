@@ -1,0 +1,244 @@
+name: Terraform CI/CD
+
+on:
+  push:
+    branches:
+      - docker-in-github-actions
+      - main
+  pull_request:
+    branches:
+      - docker-in-github-actions
+      - main
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Terraform action to perform'
+        required: true
+        default: 'plan'
+        type: choice
+        options:
+          - plan
+          - apply
+          - destroy
+
+env:
+  TF_WORKING_DIR: environments/dev
+  TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
+  REGISTRY: ghcr.io
+  IMAGE_OWNER: nelsoncabrera06  # Tu usuario de GitHub
+
+jobs:
+  # ===========================================
+  # Job 1: Validate - Runs on every push/PR
+  # ===========================================
+  validate:
+    name: Validate Terraform
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.5.0
+
+      - name: Terraform Format Check
+        id: fmt
+        run: terraform fmt -check -recursive
+        continue-on-error: true
+
+      - name: Terraform Init
+        id: init
+        run: terraform init
+        working-directory: ${{ env.TF_WORKING_DIR }}
+
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate -no-color
+        working-directory: ${{ env.TF_WORKING_DIR }}
+
+      - name: Post Validation Summary
+        run: |
+          echo "## Terraform Validation Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Step | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Format | ${{ steps.fmt.outcome == 'success' && '✅ Passed' || '⚠️ Needs formatting' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Init | ${{ steps.init.outcome == 'success' && '✅ Success' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Validate | ${{ steps.validate.outcome == 'success' && '✅ Valid' || '❌ Invalid' }} |" >> $GITHUB_STEP_SUMMARY
+
+  # ===========================================
+  # Job 2: Plan - Shows what will change
+  # ===========================================
+  plan:
+    name: Terraform Plan
+    runs-on: ubuntu-latest
+    needs: validate
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.5.0
+
+      - name: Terraform Init
+        run: terraform init
+        working-directory: ${{ env.TF_WORKING_DIR }}
+
+      # Pull images from GitHub Container Registry
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull Docker images from GHCR
+        run: |
+          echo "Pulling images from GHCR..."
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/festival-backend:latest
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/festival-frontend:latest
+
+          # Re-tag for Terraform (expects local names)
+          docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/festival-backend:latest festival-backend:latest
+          docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/festival-frontend:latest festival-frontend:latest
+
+          docker images | grep festival
+
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan -no-color -out=tfplan
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        continue-on-error: true
+
+      - name: Post Plan to Summary
+        run: |
+          echo "## Terraform Plan Output" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          terraform show -no-color tfplan >> $GITHUB_STEP_SUMMARY 2>/dev/null || echo "Plan not available" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+        working-directory: ${{ env.TF_WORKING_DIR }}
+
+      - name: Upload Plan Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-plan
+          path: ${{ env.TF_WORKING_DIR }}/tfplan
+          retention-days: 5
+
+  # ===========================================
+  # Job 3: Apply - Manual trigger only
+  # ===========================================
+  apply:
+    name: Terraform Apply
+    runs-on: ubuntu-latest
+    needs: plan
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'apply'
+    environment: production  # Requires manual approval in GitHub Settings
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.5.0
+
+      - name: Terraform Init
+        run: terraform init
+        working-directory: ${{ env.TF_WORKING_DIR }}
+
+      # Pull images from GitHub Container Registry
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull Docker images from GHCR
+        run: |
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/festival-backend:latest
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/festival-frontend:latest
+          docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/festival-backend:latest festival-backend:latest
+          docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/festival-frontend:latest festival-frontend:latest
+
+      - name: Download Plan Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: terraform-plan
+          path: ${{ env.TF_WORKING_DIR }}
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve tfplan
+        working-directory: ${{ env.TF_WORKING_DIR }}
+
+      - name: Show Running Containers
+        run: docker ps -a
+
+      - name: Post Apply Summary
+        run: |
+          echo "## Terraform Apply Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Infrastructure has been deployed!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Running Containers" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          docker ps -a >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+  # ===========================================
+  # Job 4: Destroy - Manual trigger only
+  # ===========================================
+  destroy:
+    name: Terraform Destroy
+    runs-on: ubuntu-latest
+    needs: validate
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'destroy'
+    environment: production  # Requires manual approval
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.5.0
+
+      - name: Terraform Init
+        run: terraform init
+        working-directory: ${{ env.TF_WORKING_DIR }}
+
+      # Pull images from GitHub Container Registry
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull Docker images from GHCR
+        run: |
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/festival-backend:latest
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/festival-frontend:latest
+          docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/festival-backend:latest festival-backend:latest
+          docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/festival-frontend:latest festival-frontend:latest
+
+      - name: Terraform Destroy
+        run: terraform destroy -auto-approve
+        working-directory: ${{ env.TF_WORKING_DIR }}
+
+      - name: Post Destroy Summary
+        run: |
+          echo "## Terraform Destroy Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "All infrastructure has been destroyed." >> $GITHUB_STEP_SUMMARY

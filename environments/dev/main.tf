@@ -5,11 +5,11 @@ module "network" {
 }
 
 module "backend" {
-  source      = "../../modules/backend"
-  network_id  = module.network.network_id
+  source         = "../../modules/backend"
+  network_id     = module.network.network_id
   container_name = "festival-backend"
-  image       = "festival-backend:latest"
-  port        = 3002
+  image          = var.backend_image
+  port           = 3002
 
   env = [
     # Formato: postgresql://usuario:contraseña@host_contenedor:puerto/nombre_db
@@ -18,11 +18,11 @@ module "backend" {
 }
 
 module "frontend" {
-  source      = "../../modules/frontend"
-  network_id  = module.network.network_id
+  source         = "../../modules/frontend"
+  network_id     = module.network.network_id
   container_name = "festival-frontend"
-  image       = "festival-frontend:latest"
-  port        = 5173
+  image          = var.frontend_image
+  port           = 5173
 }
 
 resource "docker_container" "db" {
