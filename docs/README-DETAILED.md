@@ -99,12 +99,14 @@ festival-infra     (Terraform)
 ```
 
 Once you created the Dockerfiles, you have to build the image:
+check if these commands are ok
 ```
 docker build -t festivalmatch-frontend .
 docker build -t festivalmatch-backend .
 ```
 
-Run the containers:
+Run the containers: 
+check if these commands are ok
 ```
 docker run -d --name festivalmatch-frontend -p 3000:3000 festivalmatch-frontend
 docker run -d --name festivalmatch-backend -p 3001:3001 festivalmatch-backend
