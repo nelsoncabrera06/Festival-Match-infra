@@ -172,10 +172,29 @@ bdccf5bf7a10   festival-frontend:latest   "docker-entrypoint.s…"   9 seconds a
 620aeff3de44   postgres:14                "docker-entrypoint.s…"   10 seconds ago   Up 10 seconds   0.0.0.0:5432->5432/tcp   festival-db
 ```
 
-I check the logs of my backend container:
+I check the logs of my backend container and my server is running:
 ```
 dev % docker logs festival-backend
 ...
    - Local:   http://localhost:3002
-   - Red:     http://172.19.0.4:3002
+```
+
+Now we are ready to Load the database backup:
+```
+# From the FestivalMatch project directory
+FestivalMatch % 
+docker exec -i festival-db psql -U postgres -d festival_match < festival_match_backup.sql
+```
+
+Access the app:
+- Backend: http://localhost:3002
+
+Useful commands:
+- `docker ps` - check running containers
+- `docker logs <container>` - view logs
+
+
+Now if you want to destroy all this infra you can run from this project 
+```
+FestivalMatch-infra % terraform destroy
 ```
