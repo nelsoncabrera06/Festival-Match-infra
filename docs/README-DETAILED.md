@@ -27,6 +27,7 @@ terraform destroy
 
 
 ## Architecture of this proyect:
+```
 FestivalMatch-infra/
 ├── docs
 │   └── README-DETAILED.md --> you are here :) 
@@ -55,11 +56,13 @@ FestivalMatch-infra/
 │       ├── variables.tf
 │       └── versions.tf
 └── README.md
+```
 
 ------------------------------------------------------------------------
 
 ## Architecture of the application FestivalMatch (the app I use to test this infrastructure)
 
+```
 FestivalMatch/
 ├── festival_match_backup.sql --> db backup, this is important 
 ├── package-lock.json
@@ -84,4 +87,4 @@ FestivalMatch/
     ├── Dockerfile   ---> this is important
     ├── festivals.json
     └── server.js
-
+```
