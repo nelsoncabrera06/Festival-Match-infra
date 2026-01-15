@@ -68,6 +68,7 @@ FestivalMatch/
 ├── festival_match_backup.sql --> db backup, this is important 
 ├── package-lock.json
 ├── package.json
+├── .env 
 ├── public
 │   ├── app.js
 │   ├── Dockerfile   ---> this is important
@@ -99,11 +100,64 @@ festival-infra     (Terraform)
 ```
 
 Once you created the Dockerfiles, you have to build the image:
-
-check if these commands are ok
+Inside the project FestivalMatch/ I ran this
 ```
-docker build -t festivalmatch-frontend .
-docker build -t festivalmatch-backend .
+FestivalMatch %
+docker build -t festival-backend ./server
+docker build -t festival-frontend ./public
+```
+With this I just created the docker images, you can check that with
+```
+FestivalMatch-infra % docker images
+IMAGE                            ID             DISK USAGE   CONTENT SIZE   EXTRA        
+festival-backend:latest          cdf20eb8c76e        148MB             0B        
+festival-frontend:latest         4d4d6c53b444        148MB             0B        
+```
+
+Now we have the images ready
+First check, no conteiners are running yet:
+```
+% docker ps
+CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
+```
+Terraform will create the containers (for backend, frontend and db) and the network in main.tf
+/FestivalMatch-infra/environments/dev/main.tf
+
+```
+module "network" { ... name   = "festival-dev" }
+
+module "backend" {
+...
+  container_name = "festival-backend"
+...
+  env = [
+    # Formato: postgresql://usuario:contraseña@host_contenedor:puerto/nombre_db
+    "DATABASE_URL=postgresql://postgres:${var.db_password}@festival-db:5432/festival_match"
+  ]
+}
+
+module "frontend" { ... container_name = "festival-frontend" ....}
+
+resource "docker_container" "db" { name  = "festival-db" ... }
+```
+
+from this project FestivalMatch-infra in environments/dev run
+```
+FestivalMatch-infra/environments/dev%
+# initialize terraform
+terraform init
+# plan and apply the changes
+terraform plan
+terraform apply
+```
+
+After this our Infrastructure is alive, and we will see first our db image created "postgres:14"
+```
+% docker images
+IMAGE                            ID             DISK USAGE   CONTENT SIZE   EXTRA
+festival-backend:latest          cdf20eb8c76e        148MB             0B        
+festival-frontend:latest         4d4d6c53b444        148MB             0B        
+postgres:14                      8eaca06e6f5a        464MB             0B 
 ```
 
 Run the containers: 
