@@ -91,11 +91,12 @@ FestivalMatch/
 ```
 
 This is how it should look like:
+```
 festival-backend   (app)
 festival-frontend  (app)
 postgres:14        (db)
 festival-infra     (Terraform)
-
+```
 
 Once you created the Dockerfiles, you have to build the image:
 ```
@@ -111,9 +112,10 @@ docker run -d --name festivalmatch-backend -p 3001:3001 festivalmatch-backend
 
 Check the images:
 ```
-nelson.cabrera@Nelsons-MacBook-Pro FestivalMatch-infra % docker images
+FestivalMatch-infra % docker images
 IMAGE                            ID             DISK USAGE   CONTENT SIZE   EXTRA        
 festival-backend:latest          cdf20eb8c76e        148MB             0B        
 festival-frontend:latest         4d4d6c53b444        148MB             0B        
 postgres:14                      8eaca06e6f5a        464MB             0B    
 ```
+
