@@ -18,3 +18,9 @@ variable "port" {
   description = "Internal and external ports"
   type        = number
 }
+
+variable "env" {
+  description = "Environment variables"
+  type        = list(string)
+  default     = []
+}

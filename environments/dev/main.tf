@@ -26,6 +26,10 @@ module "frontend" {
   image          = var.frontend_image
   port           = 5173
 
+  env = [
+    "DATABASE_URL=postgresql://postgres:${var.db_password}@festival-db:5432/festival_match"
+  ]
+
   depends_on = [docker_container.db]
 }
 
