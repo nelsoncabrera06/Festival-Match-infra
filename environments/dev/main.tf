@@ -6,7 +6,7 @@ module "network" {
 
 module "backend" {
   source         = "../../modules/backend"
-  network_id     = module.network.network_id
+  network_id     = module.network.network_name
   container_name = "festival-backend"
   image          = var.backend_image
   port           = 3002
@@ -15,21 +15,28 @@ module "backend" {
     # Formato: postgresql://usuario:contraseña@host_contenedor:puerto/nombre_db
     "DATABASE_URL=postgresql://postgres:${var.db_password}@festival-db:5432/festival_match"
   ]
+
+  depends_on = [docker_container.db]
 }
 
 module "frontend" {
   source         = "../../modules/frontend"
-  network_id     = module.network.network_id
+  network_id     = module.network.network_name
   container_name = "festival-frontend"
   image          = var.frontend_image
   port           = 5173
+
+  depends_on = [docker_container.db]
 }
 
 resource "docker_container" "db" {
   name  = "festival-db"
   image = "postgres:14"
+
+  depends_on = [module.network]
+
   networks_advanced {
-    name = "festival-dev"
+    name = module.network.network_name
   }
   env = [
     "POSTGRES_DB=festival_match",
