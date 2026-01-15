@@ -21,9 +21,9 @@ application using Terraform.
 - Multi-service setup (frontend + backend)
 
 ## Architecture
-- Frontend and backend run as Docker containers
+- Frontend and backend run as **Docker containers**
 - Containers are connected via a dedicated Docker network
-- Infrastructure is fully managed by Terraform
+- Infrastructure is fully managed by **Terraform**
 
 ## Environments
 - dev: local development environment
