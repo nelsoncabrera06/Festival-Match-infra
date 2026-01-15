@@ -1,8 +1,8 @@
 # Terraform learning Roadmap
 
 ## Roadmap
-- Terraform + Docker in local (0 € total) ---> you are here, custom branch `docker-in-local`
-- Terraform + Docker GitHub Actions CI/CD --> next step, custom branch `docker-in-github-actions`
+- Terraform + Docker in local (0 € total) ---> custom branch `docker-in-local`
+- Terraform + Docker GitHub Actions CI/CD --> you are here, custom branch `docker-in-github-actions`
 - Terraform + LocalStack (level pro) 
 - Terraform + AWS Free Tier 
 
