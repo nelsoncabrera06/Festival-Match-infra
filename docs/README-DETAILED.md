@@ -100,7 +100,8 @@ festival-infra     (Terraform)
 ```
 
 Once you created the Dockerfiles, you have to build the image:
-Inside the project FestivalMatch/ I ran this
+
+I ran this, inside the project FestivalMatch/ 
 ```
 FestivalMatch %
 docker build -t festival-backend ./server
@@ -115,12 +116,14 @@ festival-frontend:latest         4d4d6c53b444        148MB             0B
 ```
 
 Now we have the images ready
-First check, no conteiners are running yet:
+
+First check, no containers are running yet:
 ```
 % docker ps
 CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
 ```
 Terraform will create the containers (for backend, frontend and db) and the network in main.tf
+
 /FestivalMatch-infra/environments/dev/main.tf
 
 ```
@@ -160,12 +163,10 @@ festival-frontend:latest         4d4d6c53b444        148MB             0B
 postgres:14                      8eaca06e6f5a        464MB             0B 
 ```
 
-Run the containers: 
-
-check if these commands are ok
+Now our containers are running:
 ```
-docker run -d --name festivalmatch-frontend -p 3000:3000 festivalmatch-frontend
-docker run -d --name festivalmatch-backend -p 3001:3001 festivalmatch-backend
+% docker ps
+CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
 ```
 
 Check the images:
