@@ -147,7 +147,7 @@ resource "docker_container" "db" { name  = "festival-db" ... }
 from this project FestivalMatch-infra in environments/dev run
 ```
 FestivalMatch-infra/environments/dev%
-# initialize terraform
+# initialize terraform 
 terraform init
 # plan and apply the changes
 terraform plan
@@ -165,16 +165,17 @@ postgres:14                      8eaca06e6f5a        464MB             0B
 
 Now our containers are running:
 ```
-% docker ps
-CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
+dev % docker ps
+CONTAINER ID   IMAGE                      COMMAND                  CREATED          STATUS          PORTS                    NAMES
+4c381197b453   festival-backend:latest    "docker-entrypoint.s…"   9 seconds ago    Up 9 seconds    0.0.0.0:3002->3002/tcp   festival-backend
+bdccf5bf7a10   festival-frontend:latest   "docker-entrypoint.s…"   9 seconds ago    Up 9 seconds    0.0.0.0:5173->5173/tcp   festival-frontend
+620aeff3de44   postgres:14                "docker-entrypoint.s…"   10 seconds ago   Up 10 seconds   0.0.0.0:5432->5432/tcp   festival-db
 ```
 
-Check the images:
+I check the logs of my backend container:
 ```
-FestivalMatch-infra % docker images
-IMAGE                            ID             DISK USAGE   CONTENT SIZE   EXTRA        
-festival-backend:latest          cdf20eb8c76e        148MB             0B        
-festival-frontend:latest         4d4d6c53b444        148MB             0B        
-postgres:14                      8eaca06e6f5a        464MB             0B    
+dev % docker logs festival-backend
+...
+   - Local:   http://localhost:3002
+   - Red:     http://172.19.0.4:3002
 ```
-
