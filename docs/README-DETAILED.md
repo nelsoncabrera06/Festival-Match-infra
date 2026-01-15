@@ -3,6 +3,11 @@
 Terraform infrastructure for the Festival Match project:
 https://github.com/nelsoncabrera06/Festival-Match
 
+## Prerequisites
+- Docker installed
+- Terraform installed
+- FestivalMatch repo cloned
+
 ## Stack
 - Terraform
 - Docker provider
@@ -27,7 +32,7 @@ terraform apply
 terraform destroy
 ```
 
-## Architecture of this proyect:
+## Architecture of this project:
 ```
 FestivalMatch-infra/
 ├── docs
@@ -38,7 +43,7 @@ FestivalMatch-infra/
 │       ├── providers.tf
 │       ├── terraform.tfstate -- ignored in repository
 │       ├── terraform.tfstate.backup -- ignored in repository
-│       ├── terraform.tfvars -- local variables (ignored in repository)
+│       ├── terraform.tfvars -- local variables with the db_password (ignored in repository)
 │       └── variables.tf
 ├── modules
 │   ├── backend
@@ -91,15 +96,14 @@ FestivalMatch/
     └── server.js
 ```
 
-This is how it should look like:
+This is how it should look:
 ```
 festival-backend   (app)
 festival-frontend  (app)
 postgres:14        (db)
-festival-infra     (Terraform)
 ```
 
-Once you created the Dockerfiles, you have to build the image:
+Once you created the Dockerfiles, you have to build the images:
 
 I ran this, inside the project FestivalMatch/ 
 ```
@@ -134,7 +138,6 @@ module "backend" {
   container_name = "festival-backend"
 ...
   env = [
-    # Formato: postgresql://usuario:contraseña@host_contenedor:puerto/nombre_db
     "DATABASE_URL=postgresql://postgres:${var.db_password}@festival-db:5432/festival_match"
   ]
 }
@@ -144,7 +147,13 @@ module "frontend" { ... container_name = "festival-frontend" ....}
 resource "docker_container" "db" { name  = "festival-db" ... }
 ```
 
-from this project FestivalMatch-infra in environments/dev run
+Create the terraform.tfvars file with your database password:
+```
+# FestivalMatch-infra/environments/dev/terraform.tfvars
+db_password = "your_secure_password"
+```
+
+From this project FestivalMatch-infra in environments/dev run
 ```
 FestivalMatch-infra/environments/dev%
 # initialize terraform 
@@ -179,7 +188,7 @@ dev % docker logs festival-backend
    - Local:   http://localhost:3002
 ```
 
-Now we are ready to Load the database backup:
+Now we are ready to load the database backup:
 ```
 # From the FestivalMatch project directory
 FestivalMatch % 
@@ -196,5 +205,5 @@ Useful commands:
 
 Now if you want to destroy all this infra you can run from this project 
 ```
-FestivalMatch-infra % terraform destroy
+FestivalMatch-infra/environments/dev/ % terraform destroy
 ```
